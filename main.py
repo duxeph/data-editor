@@ -147,12 +147,16 @@ class window(QWidget):
     ####################################################################################### # upper three
     def filterApplying(self):
         filter = self.filterText.text().split(',')
-        col, op, var = filter[0], filter[1], filter[2]
+        try:
+            col, op, var = filter[0], filter[1], filter[2]
+        except:
+            print("[EXCEPTION] Invalid input.")
+            return
 
         try:
             var = float(var)
         except:
-            print('[ERROR] You have to give a numeric value for int type filtering operations.')
+            print('[EXCEPTION] You have to give a numeric value for int type filtering operations.')
             return
 
         try:
@@ -161,18 +165,18 @@ class window(QWidget):
         except:
             col = col
 
-        if op == '<' and filter[0] == 'int':
+        if op == '<':
             self.data = self.data[self.data[col]<var]
-        elif op == '>' and filter[0] == 'int':
+        elif op == '>':
             self.data = self.data[self.data[col]>var]
-        elif op == '<=' and filter[0] == 'int':
+        elif op == '<=':
             self.data = self.data[self.data[col]<=var]
-        elif op == '>=' and filter[0] == 'int':
+        elif op == '>=':
             self.data = self.data[self.data[col]>=var]
         elif op == '==':
             self.data = self.data[self.data[col]==var]
         else:
-            print('[INFO] No operation has been found for the chosen operator and value.')
+            print('[EXCEPTION] No operation has been found for the chosen operator and value.')
             return
 
         self.configureTable()
@@ -186,44 +190,46 @@ class window(QWidget):
                            copy, key_new
                            move, key_new
         """
-        editor = self.columnEditText.text().split(',')
+        try:
+            editor = self.columnEditText.text().split(',')
 
-        if len(editor) == 5:
-            if editor[0] == 'iloc':
-                editor[1], editor[2], editor[4] = int(editor[1]), int(editor[2]), int(editor[4])
-                for i in [1, 2, 4]:
-                    if editor[i] < 0:
-                        editor[i] = self.data.shape[1] + editor[i]
-                if editor[4] > editor[2]:
-                    editor[4] += editor[2] - editor[1]
-            elif editor[0] == 'loc':
-                editor[1], editor[2], editor[4] = list(self.data.columns).index(editor[1]), list(self.data.columns).index(editor[2]), list(self.data.columns).index(editor[4])
-        elif len(editor) == 4:
-            if editor[0] == 'iloc':
-                editor[1], editor[2] = int(editor[1]), int(editor[2])
-                for i in [1, 2]:
-                    if editor[i] < 0:
-                        editor[i] = self.data.shape[1] + editor[i]
-            elif editor[0] == 'loc':
-                editor[1], editor[2] = list(self.data.columns).index(editor[1]), list(self.data.columns).index(editor[2])
+            if len(editor) == 5:
+                if editor[0] == 'iloc':
+                    editor[1], editor[2], editor[4] = int(editor[1]), int(editor[2]), int(editor[4])
+                    for i in [1, 2, 4]:
+                        if editor[i] < 0:
+                            editor[i] = self.data.shape[1] + editor[i]
+                    if editor[4] > editor[2]:
+                        editor[4] += editor[2] - editor[1]
+                elif editor[0] == 'loc':
+                    editor[1], editor[2], editor[4] = list(self.data.columns).index(editor[1]), list(self.data.columns).index(editor[2]), list(self.data.columns).index(editor[4])
+            elif len(editor) == 4:
+                if editor[0] == 'iloc':
+                    editor[1], editor[2] = int(editor[1]), int(editor[2])
+                    for i in [1, 2]:
+                        if editor[i] < 0:
+                            editor[i] = self.data.shape[1] + editor[i]
+                elif editor[0] == 'loc':
+                    editor[1], editor[2] = list(self.data.columns).index(editor[1]), list(self.data.columns).index(editor[2])
 
-        if editor[3] == 'del':
-            self.data = self.iloc_del_function(editor[1], editor[2])
-        elif editor[3] == 'copy':
-            self.data = self.iloc_copy_function(editor[1], editor[2], editor[4])
-        elif editor[3] == 'move':
-            self.data = self.iloc_copy_function(editor[1], editor[2], editor[4])
-            self.data = self.iloc_del_function(editor[1], editor[2])
+            if editor[3] == 'del':
+                self.data = self.iloc_del_function(editor[1], editor[2])
+            elif editor[3] == 'copy':
+                self.data = self.iloc_copy_function(editor[1], editor[2], editor[4])
+            elif editor[3] == 'move':
+                self.data = self.iloc_copy_function(editor[1], editor[2], editor[4])
+                self.data = self.iloc_del_function(editor[1], editor[2])
 
-            cols = []
-            for i in range(self.data.shape[1]):
-                column = self.data.columns[i]
-                if column.endswith('_copy'):
-                    cols.append(column[:-5])
-                else:
-                    cols.append(column)
-            self.data.columns = cols
-
+                cols = []
+                for i in range(self.data.shape[1]):
+                    column = self.data.columns[i]
+                    if column.endswith('_copy'):
+                        cols.append(column[:-5])
+                    else:
+                        cols.append(column)
+                self.data.columns = cols
+        except:
+            print("[EXCEPTION] Invalid input.")
 
         self.configureTable()
     def iloc_del_function(self, index_1, index_2):
@@ -252,41 +258,44 @@ class window(QWidget):
         iloc, index_1, index_2, operator
         loc, key_1, key_2, operator
         """
-        editor = self.columnCreationText.text().split(',')
+        try:
+            editor = self.columnCreationText.text().split(',')
 
-        if editor[0] == 'iloc':
-            editor[1], editor[2] = int(editor[1]), int(editor[2])
-            for i in [1, 2]:
-                if editor[i] < 0:
-                    editor[i] = self.data.shape[1] + editor[i]
-        elif editor[0] == 'loc':
-            editor[1], editor[2] = list(self.data.columns).index(editor[1]), list(self.data.columns).index(editor[2])
-        
-        if editor[3] == '+':
-            newColumn = self.data.iloc[:, editor[1]] + self.data.iloc[:, editor[2]]
-        elif editor[3] == '-':
-            newColumn = self.data.iloc[:, editor[1]] - self.data.iloc[:, editor[2]]
-        elif editor[3] == '*':
-            newColumn = self.data.iloc[:, editor[1]] * self.data.iloc[:, editor[2]]
-        elif editor[3] == '/':
-            newColumn = self.data.iloc[:, editor[1]] / self.data.iloc[:, editor[2]]
-        elif editor[3] == '**':
-            newColumn = self.data.iloc[:, editor[1]] ** self.data.iloc[:, editor[2]]
-        elif editor[3] == '%':
-            newColumn = self.data.iloc[:, editor[1]] % self.data.iloc[:, editor[2]]
+            if editor[0] == 'iloc':
+                editor[1], editor[2] = int(editor[1]), int(editor[2])
+                for i in [1, 2]:
+                    if editor[i] < 0:
+                        editor[i] = self.data.shape[1] + editor[i]
+            elif editor[0] == 'loc':
+                editor[1], editor[2] = list(self.data.columns).index(editor[1]), list(self.data.columns).index(editor[2])
+            
+            if editor[3] == '+':
+                newColumn = self.data.iloc[:, editor[1]] + self.data.iloc[:, editor[2]]
+            elif editor[3] == '-':
+                newColumn = self.data.iloc[:, editor[1]] - self.data.iloc[:, editor[2]]
+            elif editor[3] == '*':
+                newColumn = self.data.iloc[:, editor[1]] * self.data.iloc[:, editor[2]]
+            elif editor[3] == '/':
+                newColumn = self.data.iloc[:, editor[1]] / self.data.iloc[:, editor[2]]
+            elif editor[3] == '**':
+                newColumn = self.data.iloc[:, editor[1]] ** self.data.iloc[:, editor[2]]
+            elif editor[3] == '%':
+                newColumn = self.data.iloc[:, editor[1]] % self.data.iloc[:, editor[2]]
 
-        from pandas import concat
-        self.data = concat([self.data, newColumn], axis=1)
+            from pandas import concat
+            self.data = concat([self.data, newColumn], axis=1)
 
-        cols = list(self.data.columns)
-        for i in range(100):
-            if i == 0 and cols.count('created_column') == 0:
-                cols[-1] = 'created_column'
-                break
-            elif cols.count(f'created_column_'+str(i)) == 0:
-                cols[-1] = f'created_column_'+str(i)
-                break
-        self.data.columns = cols
+            cols = list(self.data.columns)
+            for i in range(100):
+                if i == 0 and cols.count('created_column') == 0:
+                    cols[-1] = 'created_column'
+                    break
+                elif cols.count(f'created_column_'+str(i)) == 0:
+                    cols[-1] = f'created_column_'+str(i)
+                    break
+            self.data.columns = cols
+        except:
+            print("[EXCEPTION] Invalid input.")
 
         self.configureTable()
     ####################################################################################### # left bottom
