@@ -1,6 +1,17 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QFontMetrics
-from PyQt5.uic import loadUi
+try:
+    from PyQt5.QtWidgets import *
+    from PyQt5.uic import loadUi
+    from PyQt5.QtGui import QFontMetrics
+except ImportError as e:
+    with open(os.getcwd()+"/log.txt", "w") as file:
+        file.write(os.popen(f"pip install -r {os.getcwd()}/requirements.txt").read())
+    try:
+        from PyQt5.QtWidgets import *
+        from PyQt5.uic import loadUi
+        from PyQt5.QtGui import QFontMetrics
+    except ImportError as e:
+        print("[EXCEPTION] Something has gone wrong. Please provide requirements.txt before running again.")
+        sys.exit()
 
 from pandas import read_csv
 from json import dumps
